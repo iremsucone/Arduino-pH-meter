@@ -10,6 +10,10 @@ A simple project to measure the pH of a solution using an Arduino-based pH senso
   - Currently, the JavaScript code simulates random pH values as a demo.  
   - Once the project is complete, the simulation will be replaced with real pH measurements from the Arduino (via USB, WiFi, Bluetooth, etc.).
 
+    ![image](https://github.com/user-attachments/assets/43489da2-e76a-4460-8651-32c7ee189d27)
+![image](https://github.com/user-attachments/assets/2a203e25-a650-4a4c-928a-2e82aa14bf62)
+
+
 ### Usage
 
 1. **Arduino**  
