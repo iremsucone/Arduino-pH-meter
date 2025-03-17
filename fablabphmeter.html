@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Mesure du pH avec Arduino (pH vs. Temps)</title>
+    <style>
+        /* ========== RESET & BASE ========== */
+        * {
+            margin: 0 auto;  
+            
+            box-sizing: border-box;
+            width: 100%;                               /* Largeur = 70% de l'élément html (ne pas préciser de dimensions absolues permet à la page de s'adapter à l'écran)*/
+                                     /* marge extérieure à l'élèment*/
+   
+            line-height : 1.5; 
+        }
+        body {
+            padding: 100px 100px 10px 100px;
+            font-family: Arial, sans-serif;
+            background-color: #eff5b8;
+            color: #fc036b;
+        }
+
+        /* ========== HEADER ========== */
+        header {
+            background-color: #fc036b;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+
+        /* ========== TAB LINKS (ONGLETS) ========== */
+        .tab-links {
+            display: flex;
+            justify-content: center;
+            background-color: #b7c253;
+        }
+        .tab-links button {
+            background: none;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 20px;
+            transition: background-color 0.3s ease;
+            font-size: 1em;
+        }
+        .tab-links button:hover {
+            background-color: #525a08;
+        }
+        .tab-links button.active {
+            background-color: #525a08;
+        }
+
+        /* ========== TAB CONTENT SECTIONS ========== */
+        .tab-content {
+            display: none; /* Masquer par défaut */
+            padding: 20px;
+            background-color: #fff;
+            min-height: 200px; /* Pour avoir un peu de hauteur min */
+        }
+
+        /* ========== FOOTER ========== */
+        footer {
+            background-color: #443030;
+            text-align: center;
+            padding: 10px 0;
+            margin-top: 20px;
+        }
+
+        /* ========== STYLES SPÉCIFIQUES AUX SECTIONS ========== */
+        h2 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 1.4em;
+        }
+        ul {
+            margin-left: 20px;
+            margin-bottom: 20px;
+        }
+        p, li {
+            line-height: 1.5;
+        }
+
+        /* ========== CHART ========== */
+        .chart-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+            text-align: center;
+        }
+        canvas {
+            width: 100%;
+            max-width: 600px;
+            border: 1px solid #eff5b8;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1> Système de Mesure du pH avec Arduino </h1>
+</header>
+
+<!-- Barre d'onglets -->
+<div class="tab-links">
+    <button class="tab-link active" onclick="openTab(event, 'presentation')">Présentation</button>
+    <button class="tab-link" onclick="openTab(event, 'fonctionnement')">Fonctionnement &amp; Câblage</button>
+    <button class="tab-link" onclick="openTab(event, 'visualisation')">Visualisation</button>
+    <button class="tab-link" onclick="openTab(event, 'MQTT')">Données</button>
+</div>
+
+<!-- Onglet "Présentation" -->
+<div id="presentation" class="tab-content" style="display: block;">
+    <h2>Présentation</h2>
+    <p>
+        Cette page web illustre le fonctionnement d'un système simple pour mesurer le pH
+        d'une solution à l'aide d'un capteur de pH connecté à un Arduino.
+    </p>
+    <ul>
+        <li>Brève explication du capteur de pH et du câblage.</li>
+        <li>Informations sur la calibration du capteur.</li>
+        <li>Visualisation en temps réel (exemple simulé) des mesures de pH, tracées en fonction du temps.</li>
+    </ul>
+    <p>
+        Quand le projet sera finalisé, nous pourrons alors recevoir les valeurs réelles du pH
+        directement depuis l’Arduino (par USB, WiFi, Bluetooth, etc.) et observer leur évolution
+        sur ce graphique en direct. Pour le moment, nous simulons des données pour la démonstration.
+    </p>
+</div>
+
+<!-- Onglet "Fonctionnement & Câblage" -->
+<div id="fonctionnement" class="tab-content">
+    <h2>Fonctionnement &amp; Câblage</h2>
+    <p>
+        Le capteur de pH se compose d'une sonde électrochimique reliée à un module d'interface
+        (souvent basé sur un amplificateur opérationnel). Ce module ajuste le signal pour
+        qu'il puisse être lu sur une entrée analogique de l’Arduino.
+    </p>
+    <ul>
+        <li>Branchez la sonde pH (connecteur BNC) sur le module d'interface.</li>
+        <li>Connectez la sortie du module (Vout) sur une entrée analogique de l’Arduino (A0 par exemple).</li>
+        <li>Alimentez le module depuis l’Arduino.</li>
+    </ul>
+    <p>
+        Dans le code Arduino, vous lisez la valeur analogique et la convertissez en pH via
+        une formule tenant compte de la calibration (pH = f(Vmesurée)). <br>
+        <strong>Calibration :</strong> Utilisez des solutions tampons de référence (pH 4, pH 7, etc.)
+        pour régler précisément l’équation de conversion et obtenir des mesures cohérentes.
+    </p>
+</div>
+
+<!-- Onglet "Visualisation" -->
+<div id="visualisation" class="tab-content">
+    <h2>Visualisation des Données</h2>
+    <p>
+        Vous trouverez ci-dessous un graphique qui trace l'évolution du pH au cours du temps.
+        Actuellement, une nouvelle mesure simulée est générée toutes les 2 secondes.
+        Dans le projet réel, ces valeurs viendraient directement de l’Arduino.
+    </p>
+    <div class="chart-container">
+        <canvas id="phChart" width="600" height="300"></canvas>
+    </div>
+    <p>
+        L’axe horizontal (X) représente le temps (heure:minute:seconde) au moment de l’acquisition,
+        et l’axe vertical (Y) la valeur de pH mesurée.
+    </p>
+</div>
+<div id="MQTT" class="container tab-pane fade active show"><br>
+    <div class="d-sm-flex flex-sm-row m-2">
+        <div class="m-0 p-2 rounded" style="background-color: rgb(234, 209, 241);">
+            <h5>Connexion</h5>
+            <form name="connform" method="post" action="" onsubmit="return MQTTconnect()">
+
+            Serveur MQTT (wss) :<br><input type="text" name="server" value="mqtt.univ-cotedazur.fr"><br>
+            Port:<br><input type="text" name="port" value="443"><br>
+            Effacer la session (Clean Session) : <input type="checkbox" name="clean_sessions" value="true" checked=""><br><br>
+            Nom utilisateur :<br><input type="text" name="username" value="fablab2122"><br>
+            Mot de passe :<br><input type="password" name="password" value=""><br><br>
+            <input name="conn" style="margin: 2px;" type="submit" value="Connexion">
+            <input type="button" style="margin: 2px;" name="discon " value="Déconnexion" onclick="ConnexDeconnex()"><br>
+            </form>
+        </div>
+        
+        <div class="d-flex flex-column flex-grow-1" style="white-space: nowrap; overflow: hidden;">
+            <div class="ml-1 p-2 bg-warning rounded-top"><b>Status des messages :</b></div>
+            <div id="status_messages" class="ml-1 p-2 bg-warning rounded-bottom" style="overflow-x: auto;"></div>
+            <div class="ml-1 mt-2 p-2 bg-warning rounded-top"><b>Messages reçus :</b></div>
+            <div id="out_messages" class="ml-1 p-2 bg-warning rounded-bottom" style="height: 160px; overflow-x: scroll;"></div>
+            <div class="ml-1 p-2 mt-2 rounded flex-grow-1" style="background-color: #e8a2b5;"><b>Status connexion : </b><span id="statusparam"></span></div>
+            
+        </div>
+        
+    
+
+        
+        <p><b><span id="com1" style="font-weight: bold;"></span></b></p>	  
+        
+    </div>
+    
+</div>
+<!-- Pied de page -->
+<footer>
+    &copy; 2025 MonProjet Arduino pH Meter - Tous droits réservés
+</footer>
+
+<script>
+    // ========== SYSTÈME D'ONGLETS ==========
+    function openTab(evt, tabId) {
+        // 1. Cacher tout le contenu des onglets
+        const tabContents = document.getElementsByClassName('tab-content');
+        for (let i = 0; i < tabContents.length; i++) {
+            tabContents[i].style.display = 'none';
+        }
+
+        // 2. Supprimer la classe "active" de tous les boutons
+        const tabLinks = document.getElementsByClassName('tab-link');
+        for (let i = 0; i < tabLinks.length; i++) {
+            tabLinks[i].className = tabLinks[i].className.replace(' active', '');
+        }
+
+        // 3. Afficher le contenu de l'onglet sélectionné
+        document.getElementById(tabId).style.display = 'block';
+
+        // 4. Ajouter la classe "active" au bouton cliqué
+        evt.currentTarget.className += ' active';
+    }
+
+    // ========== GESTION DU GRAPHIQUE & SIMULATION ==========
+    const canvas = document.getElementById('phChart');
+    const ctx = canvas.getContext('2d');
+
+    // Tableaux pour stocker pH et le temps correspondant
+    const phValues = [];
+    const timeValues = [];
+    const maxDataPoints = 30;  // Nombre maximum de points à afficher (pour éviter un tracé trop long)
+
+    // Simule une nouvelle valeur de pH entre 4.0 et 10.0
+    function getSimulatedPH() {
+        return (Math.random() * (10 - 4) + 4).toFixed(2);
+    }
+
+    // Actualise les données et le graphique
+    function updateChart() {
+        // Récupère la nouvelle valeur de pH simulée
+        const newPH = parseFloat(getSimulatedPH());
+        phValues.push(newPH);
+
+        // Stocke l'heure courante pour l'affichage
+        const now = new Date();
+        timeValues.push(now);
+
+        // Limite la taille des tableaux
+        if (phValues.length > maxDataPoints) {
+            phValues.shift();
+            timeValues.shift();
+        }
+
+        // Redessine le graphique
+        drawChart();
+    }
+
+    // Dessine le graphique (pH vs. Temps)
+    function drawChart() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Dimensions du canevas
+        const width = canvas.width;
+        const height = canvas.height;
+        const padding = 30;
+
+        // Echelle Y : pH de 0 à 14 (typique)
+        const yMin = 0;
+        const yMax = 14;
+        const yRange = yMax - yMin;
+
+        // On calcule l'espacement en X en fonction du nombre de points
+        const dataCount = phValues.length;
+        const stepX = (width - 2 * padding) / (dataCount - 1 || 1);
+
+        // === Dessin de l'axe X (ligne horizontale) ===
+        ctx.beginPath();
+        ctx.moveTo(padding, height - padding);
+        ctx.lineTo(width - padding, height - padding);
+        ctx.strokeStyle = "#000";
+        ctx.stroke();
+
+        // === Dessin de l'axe Y (ligne verticale) ===
+        ctx.beginPath();
+        ctx.moveTo(padding, padding);
+        ctx.lineTo(padding, height - padding);
+        ctx.strokeStyle = "#000";
+        ctx.stroke();
+
+        // === Trace de la courbe pH vs. temps ===
+        ctx.beginPath();
+        for (let i = 0; i < dataCount; i++) {
+            // Position X
+            const x = padding + i * stepX;
+            // Normalisation de pH sur la hauteur
+            const normalized = (phValues[i] - yMin) / yRange;
+            const y = height - padding - normalized * (height - 2 * padding);
+
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        }
+        ctx.strokeStyle = "#007bff"; // Couleur de la ligne
+        ctx.stroke();
+
+        // === Dessin des points ===
+        for (let i = 0; i < dataCount; i++) {
+            const x = padding + i * stepX;
+            const normalized = (phValues[i] - yMin) / yRange;
+            const y = height - padding - normalized * (height - 2 * padding);
+
+            ctx.beginPath();
+            ctx.arc(x, y, 3, 0, 2 * Math.PI);
+            ctx.fillStyle = "#007bff";
+            ctx.fill();
+        }
+
+        // === Dessin des graduations de temps en X ===
+        // On va afficher l'heure (hh:mm:ss) sous chaque point, ou 1 sur 2 pour éviter le chevauchement.
+        ctx.font = "12px Arial";
+        ctx.fillStyle = "#000";
+        ctx.textAlign = "center";
+        for (let i = 0; i < dataCount; i++) {
+            if (dataCount < 15 || i % 2 === 0) {
+                // Format heure:minute:seconde
+                const timeString = timeValues[i].toLocaleTimeString();
+                const x = padding + i * stepX;
+                // Place le texte un peu en dessous de l'axe X
+                ctx.fillText(timeString, x, height - padding + 15);
+            }
+        }
+
+        // === Dessin des graduations sur l'axe Y (quelques repères) ===
+        ctx.textAlign = "right";
+        const yTickCount = 7; // Par exemple, un repère tous les 2 pH ~
+        for (let i = 0; i <= yTickCount; i++) {
+            const yTickValue = yMin + i * (yRange / yTickCount); // de 0 à 14
+            const yPos = height - padding - (yTickValue / yMax) * (height - 2 * padding);
+            ctx.fillText(yTickValue.toFixed(0), padding - 3, yPos + 3);
+        }
+    }
+
+    // Démarre la mise à jour toutes les 2 secondes
+    setInterval(updateChart, 2000);
+</script>
+</body>
+</html>
